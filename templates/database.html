@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Disaster Incident Database</title>
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/database.css') }}">
+</head>
+<body>
+	<header class="page-header">
+		<div class="header-content">
+			<h1>Disaster Incident Database</h1>
+			<div class="header-actions">
+				<a href="{{ url_for('home') }}" class="button-link">Home</a>
+				<a href="{{ url_for('export_excel') }}" class="button-link">Export to Excel</a>
+				<form
+					method="POST"
+					action="{{ url_for('remove_all_incidents') }}"
+					class="inline-form"
+					onsubmit="return confirm('Warning: This will permanently delete all incidents. Continue?');"
+				>
+					<button type="submit" class="button-danger">Remove All</button>
+				</form>
+			</div>
+		</div>
+	</header>
+
+	<div class="container">
+		<h2>Saved Incidents</h2>
+
+		{% with messages = get_flashed_messages(with_categories=true) %}
+			{% if messages %}
+				<div class="alerts">
+					{% for category, message in messages %}
+						<div class="alert {{ category }}">{{ message }}</div>
+					{% endfor %}
+				</div>
+			{% endif %}
+		{% endwith %}
+
+		<div class="table-wrap">
+			<table>
+				<thead>
+					<tr>
+						<th>No.</th>
+						<th>Emergency Type</th>
+						<th>Incident Name</th>
+						<th>Date</th>
+						<th>Time</th>
+						<th>Place</th>
+						<th>Driver</th>
+						<th>PTV Number</th>
+						<th>Responders</th>
+						<th>Remarks</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for incident in incidents %}
+					<tr>
+						<td>{{ incident.id }}</td>
+						<td>{{ incident.emergency_type }}</td>
+						<td>{{ incident.incident_name }}</td>
+						<td>{{ incident.incident_date.strftime('%Y-%m-%d') }}</td>
+						<td>{{ incident.incident_time.strftime('%H:%M') }}</td>
+						<td>{{ incident.place }}</td>
+						<td>{{ incident.driver }}</td>
+						<td>{{ incident.ptv_number }}</td>
+						<td>{{ incident.responders }}</td>
+						<td>{{ incident.remarks }}</td>
+						<td><a href="{{ url_for('edit_incident', incident_id=incident.id) }}" class="button-link">Edit</a></td>
+					</tr>
+					{% else %}
+					<tr>
+						<td colspan="11" class="empty">No incidents yet.</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,156 @@
+body {
+	margin: 0;
+	font-family: Arial, sans-serif;
+	background: #f5f7fb;
+	color: #1b1f24;
+}
+
+.page-header {
+	background: #ffffff;
+	border-bottom: 1px solid #d9e1ec;
+	padding: 12px 16px;
+}
+
+.header-content {
+	max-width: 1100px;
+	margin: 0 auto;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+}
+
+.header-actions {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.header-content h1 {
+	margin: 0;
+	font-size: 24px;
+}
+
+.container {
+	max-width: 1100px;
+	margin: 24px auto;
+	padding: 16px;
+}
+
+h1,
+h2 {
+	margin-bottom: 12px;
+}
+
+.incident-form {
+	background: #ffffff;
+	border: 1px solid #d9e1ec;
+	border-radius: 8px;
+	padding: 16px;
+	margin-bottom: 20px;
+}
+
+.form-group {
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 10px;
+}
+
+label {
+	font-size: 14px;	
+	margin-bottom: 4px;
+}
+
+input,
+select,
+textarea {
+	font-size: 14px;
+	padding: 8px;
+	border: 1px solid #c7d2df;
+	border-radius: 6px;
+}
+
+button {
+	padding: 10px 14px;
+	border: none;
+	border-radius: 6px;
+	background: #1e5eff;
+	color: #ffffff;
+	cursor: pointer;
+}
+
+.actions {
+	margin-bottom: 10px;
+}
+
+.button-link {
+	display: inline-block;
+	padding: 10px 14px;
+	border-radius: 6px;
+	background: #1e5eff;
+	color: #ffffff;
+	text-decoration: none;
+}
+
+.inline-form {
+	margin: 0;
+}
+
+.button-danger {
+	padding: 10px 14px;
+	border: none;
+	border-radius: 6px;
+	background: #c62828;
+	color: #ffffff;
+	cursor: pointer;
+}
+
+.table-wrap {
+	overflow-x: auto;
+	background: #ffffff;
+	border: 1px solid #d9e1ec;
+	border-radius: 8px;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+th,
+td {
+	padding: 10px;
+	border-bottom: 1px solid #e6ecf3;
+	text-align: left;
+	font-size: 14px;
+	vertical-align: top;
+}
+
+th {
+	background: #f0f4fa;
+}
+
+.alerts {
+	margin-bottom: 12px;
+}
+
+.alert {
+	padding: 10px;
+	border-radius: 6px;
+	margin-bottom: 8px;
+}
+
+.alert.success {
+	background: #dff6e7;
+	color: #1f6a38;
+}
+
+.alert.error {
+	background: #ffe1e1;
+	color: #8f1f1f;
+}
+
+.empty {
+	text-align: center;
+	color: #6c7887;
+}

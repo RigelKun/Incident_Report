@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Edit Incident</title>
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/database.css') }}">
+</head>
+<body>
+	<header class="page-header">
+		<div class="header-content">
+			<h1>Edit Incident</h1>
+			<div class="header-actions">
+				<a href="{{ url_for('home') }}" class="button-link">Home</a>
+				<a href="{{ url_for('database') }}" class="button-link">Database</a>
+			</div>
+		</div>
+	</header>
+
+	<div class="container">
+		{% with messages = get_flashed_messages(with_categories=true) %}
+			{% if messages %}
+				<div class="alerts">
+					{% for category, message in messages %}
+						<div class="alert {{ category }}">{{ message }}</div>
+					{% endfor %}
+				</div>
+			{% endif %}
+		{% endwith %}
+
+		<form method="POST" action="{{ url_for('edit_incident', incident_id=incident.id) }}" class="incident-form">
+			<div class="form-group">
+				<label for="emergency_type">Type of Emergency</label>
+				<select id="emergency_type" name="emergency_type" required>
+					<option value="OBGYN" {% if incident.emergency_type == 'OBGYN' %}selected{% endif %}>OB-GYN</option>
+					<option value="Trauma" {% if incident.emergency_type == 'Trauma' %}selected{% endif %}>Trauma</option>
+					<option value="Medical" {% if incident.emergency_type == 'Medical' %}selected{% endif %}>Medical</option>
+				</select>
+			</div>
+
+			<div class="form-group">
+				<label for="incident_name">Name of Incident</label>
+				<input type="text" id="incident_name" name="incident_name" value="{{ incident.incident_name }}" required>
+			</div>
+
+			<div class="form-group">
+				<label for="incident_date">Date of Incident</label>
+				<input type="date" id="incident_date" name="incident_date" value="{{ incident.incident_date.strftime('%Y-%m-%d') }}" required>
+			</div>
+
+			<div class="form-group">
+				<label for="incident_time">Time of Incident</label>
+				<input type="time" id="incident_time" name="incident_time" value="{{ incident.incident_time.strftime('%H:%M') }}" required>
+			</div>
+
+			<div class="form-group">
+				<label for="place">Place of Incident</label>
+				<input type="text" id="place" name="place" value="{{ incident.place }}" required>
+			</div>
+
+			<div class="form-group">
+				<label for="driver">Driver</label>
+				<input type="text" id="driver" name="driver" value="{{ incident.driver }}" required>
+			</div>
+
+			<div class="form-group">
+				<label for="ptv_number">PTV Number</label>
+				<input type="text" id="ptv_number" name="ptv_number" value="{{ incident.ptv_number }}" required>
+			</div>
+
+			<div class="form-group">
+				<label for="responders">Responders</label>
+				<input type="text" id="responders" name="responders" value="{{ incident.responders }}" required>
+			</div>
+
+			<div class="form-group">
+				<label for="remarks">Remarks</label>
+				<textarea id="remarks" name="remarks" rows="3">{{ incident.remarks }}</textarea>
+			</div>
+
+			<button type="submit">Update Incident</button>
+		</form>
+	</div>
+</body>
+</html>

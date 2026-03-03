@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Disaster Classification App</title>
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/database.css') }}">
+</head>
+<body>
+	<header class="page-header">
+		<div class="header-content">
+			<h1>Disaster Incident Input</h1>
+			<div class="header-actions">
+				<a href="{{ url_for('database') }}" class="button-link">Database</a>
+			</div>
+		</div>
+	</header>
+
+	<div class="container">
+		<h2>Incident Input Template</h2>
+
+		{% with messages = get_flashed_messages(with_categories=true) %}
+			{% if messages %}
+				<div class="alerts">
+					{% for category, message in messages %}
+						<div class="alert {{ category }}">{{ message }}</div>
+					{% endfor %}
+				</div>
+			{% endif %}
+		{% endwith %}
+
+		<form method="POST" action="{{ url_for('home') }}" class="incident-form">
+			<div class="form-group">
+				<label for="emergency_type">Type of Emergency</label>
+				<select id="emergency_type" name="emergency_type" required>
+					<option value="" selected disabled>Select emergency type</option>
+					<option value="OBGYN">OB-GYN</option>
+					<option value="Trauma">Trauma</option>
+					<option value="Medical">Medical</option>
+				</select>
+			</div>
+
+			<div class="form-group">
+				<label for="incident_name">Name of Incident</label>
+				<input type="text" id="incident_name" name="incident_name" required>
+			</div>
+
+			<div class="form-group">
+				<label for="incident_date">Date of Incident</label>
+				<input type="date" id="incident_date" name="incident_date" required>
+			</div>
+
+			<div class="form-group">
+				<label for="incident_time">Time of Incident</label>
+				<input type="time" id="incident_time" name="incident_time" required>
+			</div>
+
+			<div class="form-group">
+				<label for="place">Place of Incident</label>
+				<input type="text" id="place" name="place" required>
+			</div>
+
+			<div class="form-group">
+				<label for="driver">Driver</label>
+				<input type="text" id="driver" name="driver" required>
+			</div>
+
+			<div class="form-group">
+				<label for="ptv_number">PTV Number</label>
+				<input type="text" id="ptv_number" name="ptv_number" required>
+			</div>
+
+			<div class="form-group">
+				<label for="responders">Responders</label>
+				<input type="text" id="responders" name="responders" required>
+			</div>
+
+			<div class="form-group">
+				<label for="remarks">Remarks</label>
+				<textarea id="remarks" name="remarks" rows="3"></textarea>
+			</div>
+
+			<button type="submit">Save Incident</button>
+		</form>
+	</div>
+</body>
+</html>
