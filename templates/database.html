@@ -11,8 +11,12 @@
 		<div class="header-content">
 			<h1>Disaster Incident Database</h1>
 			<div class="header-actions">
+				{% if current_user %}
+					<span class="user-badge">{{ current_user.username }} ({{ current_user.role }})</span>
+				{% endif %}
 				<a href="{{ url_for('home') }}" class="button-link">Home</a>
 				<a href="{{ url_for('export_excel') }}" class="button-link">Export to Excel</a>
+				{% if current_user and current_user.role == 'admin' %}
 				<form
 					method="POST"
 					action="{{ url_for('remove_all_incidents') }}"
@@ -20,6 +24,10 @@
 					onsubmit="return confirm('Warning: This will permanently delete all incidents. Continue?');"
 				>
 					<button type="submit" class="button-danger">Remove All</button>
+				</form>
+				{% endif %}
+				<form method="POST" action="{{ url_for('logout') }}" class="inline-form">
+					<button type="submit" class="button-danger">Logout</button>
 				</form>
 			</div>
 		</div>
@@ -71,6 +79,7 @@
 						<td>
 							<div class="row-actions">
 								<a href="{{ url_for('edit_incident', incident_id=incident.id) }}" class="button-link">Edit</a>
+								{% if current_user and current_user.role == 'admin' %}
 								<form
 									method="POST"
 									action="{{ url_for('delete_incident', incident_id=incident.id) }}"
@@ -79,6 +88,7 @@
 								>
 									<button type="submit" class="button-danger">Delete</button>
 								</form>
+								{% endif %}
 							</div>
 						</td>
 					</tr>

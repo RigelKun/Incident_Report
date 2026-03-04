@@ -1,22 +1,28 @@
-from datetime import datetime
+import os
+from datetime import datetime, timedelta
+from functools import wraps
 from io import BytesIO
 from pathlib import Path
 
-from flask import Flask, flash, redirect, render_template, request, send_file, url_for
+from flask import Flask, flash, redirect, render_template, request, send_file, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.worksheet.properties import PageSetupProperties
+from werkzeug.security import check_password_hash, generate_password_hash
 
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "dev-secret-key"
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key-change-me")
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///disaster.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=8)
+app.config["SESSION_COOKIE_HTTPONLY"] = True
 
 db = SQLAlchemy(app)
 
 ALLOWED_EMERGENCY_TYPES = {"OBGYN", "Trauma", "Medical"}
+ALLOWED_USER_ROLES = {"admin", "staff"}
 
 
 class Incident(db.Model):
@@ -33,7 +39,108 @@ class Incident(db.Model):
 	created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+class User(db.Model):
+	id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+	username = db.Column(db.String(80), unique=True, nullable=False)
+	password_hash = db.Column(db.String(255), nullable=False)
+	role = db.Column(db.String(20), nullable=False, default="staff")
+	created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+	def set_password(self, raw_password):
+		self.password_hash = generate_password_hash(raw_password)
+
+	def check_password(self, raw_password):
+		return check_password_hash(self.password_hash, raw_password)
+
+
+def get_current_user():
+	user_id = session.get("user_id")
+	if not user_id:
+		return None
+	return User.query.get(user_id)
+
+
+def _is_safe_next_url(next_url):
+	return bool(next_url and next_url.startswith("/"))
+
+
+def login_required(view_function):
+	@wraps(view_function)
+	def wrapped_view(*args, **kwargs):
+		if not get_current_user():
+			flash("Please log in to continue.", "error")
+			return redirect(url_for("login", next=request.path))
+		return view_function(*args, **kwargs)
+
+	return wrapped_view
+
+
+def admin_required(view_function):
+	@wraps(view_function)
+	def wrapped_view(*args, **kwargs):
+		user = get_current_user()
+		if not user:
+			flash("Please log in to continue.", "error")
+			return redirect(url_for("login", next=request.path))
+		if user.role != "admin":
+			flash("Admin access is required for that action.", "error")
+			return redirect(url_for("database"))
+		return view_function(*args, **kwargs)
+
+	return wrapped_view
+
+
+@app.context_processor
+def inject_current_user():
+	user = get_current_user()
+	return {"current_user": user}
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+	if get_current_user():
+		return redirect(url_for("home"))
+
+	next_url = request.args.get("next", "")
+	if request.method == "POST":
+		username = request.form.get("username", "").strip()
+		password = request.form.get("password", "")
+		next_url = request.form.get("next", "")
+
+		if not username or not password:
+			flash("Please enter both username and password.", "error")
+			return render_template("login.html", next_url=next_url)
+
+		user = User.query.filter_by(username=username).first()
+		if not user or not user.check_password(password):
+			flash("Invalid username or password.", "error")
+			return render_template("login.html", next_url=next_url)
+
+		session.clear()
+		session["user_id"] = user.id
+		session.permanent = True
+		flash("Logged in successfully.", "success")
+
+		if _is_safe_next_url(next_url):
+			return redirect(next_url)
+		return redirect(url_for("home"))
+
+	if not _is_safe_next_url(next_url):
+		next_url = ""
+
+	return render_template("login.html", next_url=next_url)
+
+
+@app.route("/logout", methods=["POST"])
+@login_required
+def logout():
+	session.clear()
+	flash("Logged out successfully.", "success")
+	return redirect(url_for("login"))
+
+
 @app.route("/", methods=["GET", "POST"])
+@login_required
 def home():
 	if request.method == "POST":
 		emergency_type = request.form.get("emergency_type", "").strip()
@@ -92,12 +199,14 @@ def home():
 
 
 @app.route("/database", methods=["GET"])
+@login_required
 def database():
 	incidents = Incident.query.order_by(Incident.id.desc()).all()
 	return render_template("database.html", incidents=incidents)
 
 
 @app.route("/incident/<int:incident_id>/edit", methods=["GET", "POST"])
+@login_required
 def edit_incident(incident_id):
 	incident = Incident.query.get_or_404(incident_id)
 
@@ -156,6 +265,7 @@ def edit_incident(incident_id):
 
 
 @app.route("/incidents/remove-all", methods=["POST"])
+@admin_required
 def remove_all_incidents():
 	deleted_count = db.session.query(Incident).delete()
 	db.session.commit()
@@ -164,6 +274,7 @@ def remove_all_incidents():
 
 
 @app.route("/incident/<int:incident_id>/delete", methods=["POST"])
+@admin_required
 def delete_incident(incident_id):
 	incident = Incident.query.get_or_404(incident_id)
 	db.session.delete(incident)
@@ -173,6 +284,7 @@ def delete_incident(incident_id):
 
 
 @app.route("/export")
+@login_required
 def export_excel():
 	incidents = Incident.query.order_by(Incident.id.asc()).all()
 	base_dir = Path(__file__).resolve().parent
@@ -338,6 +450,17 @@ def export_excel():
 
 with app.app_context():
 	db.create_all()
+	if User.query.count() == 0:
+		admin_username = os.environ.get("ADMIN_USERNAME", "admin")
+		admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
+		admin_role = os.environ.get("ADMIN_ROLE", "admin").lower()
+		if admin_role not in ALLOWED_USER_ROLES:
+			admin_role = "admin"
+
+		admin_user = User(username=admin_username, role=admin_role)
+		admin_user.set_password(admin_password)
+		db.session.add(admin_user)
+		db.session.commit()
 
 
 if __name__ == "__main__":
