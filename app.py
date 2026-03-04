@@ -163,6 +163,15 @@ def remove_all_incidents():
 	return redirect(url_for("database"))
 
 
+@app.route("/incident/<int:incident_id>/delete", methods=["POST"])
+def delete_incident(incident_id):
+	incident = Incident.query.get_or_404(incident_id)
+	db.session.delete(incident)
+	db.session.commit()
+	flash("Incident deleted successfully.", "success")
+	return redirect(url_for("database"))
+
+
 @app.route("/export")
 def export_excel():
 	incidents = Incident.query.order_by(Incident.id.asc()).all()

@@ -96,6 +96,12 @@ button {
 	margin: 0;
 }
 
+.row-actions {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
 .button-danger {
 	padding: 10px 14px;
 	border: none;
