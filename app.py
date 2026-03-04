@@ -450,16 +450,22 @@ def export_excel():
 
 with app.app_context():
 	db.create_all()
-	if User.query.count() == 0:
-		admin_username = os.environ.get("ADMIN_USERNAME", "admin")
-		admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
-		admin_role = os.environ.get("ADMIN_ROLE", "admin").lower()
-		if admin_role not in ALLOWED_USER_ROLES:
-			admin_role = "admin"
+	admin_username = os.environ.get("ADMIN_USERNAME", "admin")
+	admin_password = os.environ.get("ADMIN_PASSWORD", "adminmdrrmobato")
+	admin_role = os.environ.get("ADMIN_ROLE", "admin").lower()
+	admin_force_reset_password = os.environ.get("ADMIN_FORCE_RESET_PASSWORD", "0") == "1"
+	if admin_role not in ALLOWED_USER_ROLES:
+		admin_role = "admin"
 
+	admin_user = User.query.filter_by(username=admin_username).first()
+	if not admin_user:
 		admin_user = User(username=admin_username, role=admin_role)
 		admin_user.set_password(admin_password)
 		db.session.add(admin_user)
+		db.session.commit()
+	elif admin_force_reset_password:
+		admin_user.set_password(admin_password)
+		admin_user.role = admin_role
 		db.session.commit()
 
 
